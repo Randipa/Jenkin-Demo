@@ -3,57 +3,21 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   test:
-    name: Run Tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
+      - run: npm install
+      - run: npm test
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-  build-docker:
-    name: Build Docker Image
+  build:
     runs-on: ubuntu-latest
     needs: test
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Docker image
-        run: |
-          docker build -t jenkin-demo:${{ github.sha }} .
-          docker tag jenkin-demo:${{ github.sha }} jenkin-demo:latest
-
-      - name: Show image info
-        run: docker images jenkin-demo
-
-  deploy:
-    name: Deploy (Demo)
-    runs-on: ubuntu-latest
-    needs: build-docker
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Deployment summary
-        run: |
-          echo "CI/CD completed successfully!"
-          echo "Commit: ${{ github.sha }}"
-          echo "Image tag: jenkin-demo:${{ github.sha }}"
-          echo "In production, this step would deploy to a server or push to a registry."
+      - uses: actions/checkout@v4
+      - run: docker build -t jenkin-demo .
