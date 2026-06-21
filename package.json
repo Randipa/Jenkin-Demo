@@ -1,0 +1,13 @@
+{
+  "name": "jenkin-demo",
+  "version": "1.0.0",
+  "description": "Simple Node.js app for Jenkins CI/CD demo",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": ["jenkins", "ci-cd", "nodejs"],
+  "author": "",
+  "license": "MIT"
+}
