@@ -1,12 +1,8 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'NodeJS-18'
-    }
-
-    triggers {
-        githubPush()
+    environment {
+        IMAGE_NAME = 'jenkin-demo'
     }
 
     stages {
@@ -17,23 +13,32 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Run Tests') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
             steps {
-                echo 'Installing npm packages...'
+                echo 'Running tests inside Node.js container...'
                 sh 'npm install'
+                sh 'npm test'
             }
         }
 
-        stage('Run Tests') {
+        stage('Build Docker Image') {
             steps {
-                echo 'Running tests...'
-                sh 'npm test'
+                echo 'Building Docker image...'
+                sh "docker build -t ${IMAGE_NAME}:${env.BUILD_NUMBER} ."
+                sh "docker tag ${IMAGE_NAME}:${env.BUILD_NUMBER} ${IMAGE_NAME}:latest"
             }
         }
 
         stage('Build Info') {
             steps {
-                echo 'Build completed successfully!'
+                echo 'Pipeline completed successfully!'
+                echo "Docker image: ${IMAGE_NAME}:${env.BUILD_NUMBER}"
                 echo "Branch: ${env.BRANCH_NAME ?: env.GIT_BRANCH}"
                 echo "Build Number: ${env.BUILD_NUMBER}"
             }
@@ -42,7 +47,7 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline finished successfully!'
+            echo "Image ready: ${IMAGE_NAME}:${env.BUILD_NUMBER}"
         }
         failure {
             echo 'Pipeline failed. Check the logs above.'
