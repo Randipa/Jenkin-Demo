@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Test
+    name: Run Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +27,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-  build:
+  build-docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
     needs: test
@@ -36,23 +36,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build image
+      - name: Build Docker image
         run: |
           docker build -t jenkin-demo:${{ github.sha }} .
           docker tag jenkin-demo:${{ github.sha }} jenkin-demo:latest
 
-      - name: Print image info
+      - name: Show image info
         run: docker images jenkin-demo
 
   deploy:
-    name: Deploy
+    name: Deploy (Demo)
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-docker
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Deploy summary
+      - name: Deployment summary
         run: |
-          echo "CI/CD completed successfully"
+          echo "CI/CD completed successfully!"
           echo "Commit: ${{ github.sha }}"
-          echo "Image: jenkin-demo:${{ github.sha }}"
+          echo "Image tag: jenkin-demo:${{ github.sha }}"
+          echo "In production, this step would deploy to a server or push to a registry."
